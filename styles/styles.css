@@ -1,0 +1,55 @@
+/* Base background */
+html, body {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Streamlit main container */
+section.main > div {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Headers */
+h1, h2, h3, h4 {
+    color: #00ffff !important;
+}
+
+/* Buttons */
+button {
+    background-color: #111 !important;
+    color: #00ffcc !important;
+    border: 1px solid #00ffcc !important;
+}
+
+/* Inputs and selects */
+input, select, textarea {
+    background-color: #111 !important;
+    color: #fff !important;
+    border: 1px solid #444 !important;
+}
+
+/* Tables */
+table {
+    background-color: #111 !important;
+    color: #fff !important;
+    border-collapse: collapse !important;
+}
+thead {
+    background-color: #222 !important;
+}
+tr, td, th {
+    border: 1px solid #333 !important;
+}
+
+/* Sidebar (if shown) */
+.st-emotion-cache-1v0mbdj, .st-emotion-cache-1d3w5wq {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Streamlit markdown / expander / card areas */
+div[data-testid="stExpander"], .stMarkdown, .stTextInput, .stButton {
+    background-color: #000 !important;
+    color: #fff !important;
+}
