@@ -8,11 +8,12 @@ from core.assign import generate_assignments
 from core.priority import calculate_store_priorities
 from views.visit_plan_view import render_visit_plan
 from views.visit_log_view import render_visit_log
+from core.utils import today_str
+from data.loaders import save_to_json, load_from_json
+from data.db import initialize_database
 
-
-
-
-
+with open("styles/styles.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
 with st.expander("🧑‍💼 Register People (Leader / Member)"):
@@ -65,3 +66,19 @@ with st.expander("📅 Generated Visit Plan"):
 # Visit history (Section 5)
 with st.expander("📜 Visit History"):
     render_visit_log()
+
+
+
+
+
+today = today_str()
+
+if "people" not in st.session_state:
+    st.session_state.people = load_from_json("people.json")
+
+if st.button("Save Data"):
+    save_to_json("people.json", st.session_state.people)
+    st.success("Data saved to file!")
+
+
+initialize_database()
