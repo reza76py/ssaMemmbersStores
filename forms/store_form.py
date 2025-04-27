@@ -128,6 +128,37 @@ def render_store_form():
     conn.close()
 
     if stores:
-        st.table(stores)
+        st.markdown("### 🏬 Stores List with Delete Button")
+
+        # Prepare table data
+        stores_table = []
+        for store in stores:
+            stores_table.append({
+                "Store Name": store[0],
+                "Latitude": round(store[1], 6),
+                "Longitude": round(store[2], 6),
+                "Delete": False,  # 🔥 New column for delete checkbox
+            })
+
+        # Show data editor
+        edited_stores = st.data_editor(
+            stores_table,
+            hide_index=True,
+            column_config={
+                "Delete": st.column_config.CheckboxColumn("Delete", default=False)
+            }
+        )
+
+        # 🔥 If any Delete checkbox is checked, delete that store
+        for store in edited_stores:
+            if store["Delete"]:
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM stores WHERE name = ?", (store["Store Name"],))
+                conn.commit()
+                conn.close()
+                st.success(f"✅ Deleted {store['Store Name']}")
+                st.rerun()
+
     else:
         st.info("No stores registered yet.")

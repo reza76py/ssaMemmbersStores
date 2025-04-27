@@ -126,6 +126,38 @@ def render_people_form():
     conn.close()
 
     if people:
-        st.table([{"Name": p[0], "Role": p[1], "Lat": p[2], "Lng": p[3]} for p in people])
+        st.markdown("### 👤 People List with Delete Button")
+
+        # Prepare table data
+        people_table = []
+        for person in people:
+            people_table.append({
+                "Name": person[0],
+                "Role": person[1],
+                "Latitude": round(person[2], 6),
+                "Longitude": round(person[3], 6),
+                "Delete": False,  # 🔥 New column for delete checkbox
+            })
+
+        # Show data editor
+        edited_people = st.data_editor(
+            people_table,
+            hide_index=True,
+            column_config={
+                "Delete": st.column_config.CheckboxColumn("Delete", default=False)
+            }
+        )
+
+        # 🔥 If any Delete checkbox is checked, delete that person
+        for person in edited_people:
+            if person["Delete"]:
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM people WHERE name = ?", (person["Name"],))
+                conn.commit()
+                conn.close()
+                st.success(f"✅ Deleted {person['Name']}")
+                st.rerun()
+
     else:
         st.info("No people registered yet.")
