@@ -4,8 +4,7 @@ import sqlite3
 DB_NAME = "ssa_app.db"
 
 def get_connection():
-    """Create or return a database connection."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
     return conn
 
 def initialize_database():
