@@ -2,10 +2,21 @@ import math
 import random
 from datetime import date
 from core.priority_selector import select_stores_by_priority
+from math import radians, sin, cos, sqrt, atan2
 
-def calculate_distance(lat1, lng1, lat2, lng2):
-    return round(math.sqrt((lat1 - lat2) ** 2 + (lng1 - lng2) ** 2), 2)
+def haversine(lat1, lon1, lat2, lon2):
+    # Earth radius in kilometers
+    R = 6371.0
 
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return round(R * c, 3)  # Distance in km
 def generate_assignments(stores, deliveries, availability, people, visit_log):
     today = date.today()
     plan = []
@@ -32,7 +43,7 @@ def generate_assignments(stores, deliveries, availability, people, visit_log):
 
         sorted_leaders = sorted(
             remaining_leaders,
-            key=lambda l: calculate_distance(
+            key=lambda l: haversine(
                 store["latitude"], store["longitude"],
                 next(p["latitude"] for p in people if p["name"] == l["name"]),
                 next(p["longitude"] for p in people if p["name"] == l["name"])
@@ -42,13 +53,13 @@ def generate_assignments(stores, deliveries, availability, people, visit_log):
         if not sorted_leaders:
             continue
 
-        closest_distance = calculate_distance(
+        closest_distance = haversine(
             store["latitude"], store["longitude"],
             next(p["latitude"] for p in people if p["name"] == sorted_leaders[0]["name"]),
             next(p["longitude"] for p in people if p["name"] == sorted_leaders[0]["name"])
         )
         equally_close_leaders = [l for l in sorted_leaders if 
-                                 calculate_distance(
+                                 haversine(
                                      store["latitude"], store["longitude"],
                                      next(p["latitude"] for p in people if p["name"] == l["name"]),
                                      next(p["longitude"] for p in people if p["name"] == l["name"])
@@ -65,74 +76,73 @@ def generate_assignments(stores, deliveries, availability, people, visit_log):
 
         remaining_leaders.remove(selected_leader)
 
-    # Step 2: Guarantee at least 1 member
+    # ✅ Step 2: Assign 1 closest member to each leader
     for assignment in store_assignments:
         if not remaining_members:
             break
 
         store = assignment["store"]
 
-        sorted_members = sorted(
+        closest_member = min(
             remaining_members,
-            key=lambda m: calculate_distance(
+            key=lambda m: haversine(
                 store["latitude"], store["longitude"],
                 next(p["latitude"] for p in people if p["name"] == m["name"]),
                 next(p["longitude"] for p in people if p["name"] == m["name"])
             )
         )
+        assignment["assigned_members"].append(closest_member["name"])
+        remaining_members.remove(closest_member)
 
-        if sorted_members:
-            selected_member = sorted_members[0]
-            assignment["assigned_members"].append(selected_member["name"])
-            remaining_members.remove(selected_member)
+    # ✅ Step 3: Proportional member distribution
+    total_value = sum(a["delivery"]["goods_value"] for a in store_assignments)
+    total_members = len(available_members)
 
-    # Step 3: Distribute remaining members
-    for assignment in sorted(store_assignments, key=lambda a: a["delivery"]["goods_value"], reverse=True):
-        if not remaining_members:
-            break
-
-        store = assignment["store"]
-        delivery = assignment["delivery"]
-
-        value = delivery["goods_value"]
-        total_members_needed = 1 if value <= 5000 else 2 if value <= 10000 else 3
+    # Calculate how many members each store *should* get (including the one already assigned)
+    store_targets = []
+    for assignment in store_assignments:
+        ratio = assignment["delivery"]["goods_value"] / total_value
+        ideal_total = round(ratio * total_members)
         already_assigned = len(assignment["assigned_members"])
-        still_needed = total_members_needed - already_assigned
+        remaining_needed = max(0, ideal_total - already_assigned)
+        store_targets.append((assignment, remaining_needed))
 
-        if still_needed <= 0:
-            continue
+    # Assign remaining members to closest stores needing more help
+    while remaining_members and any(t[1] > 0 for t in store_targets):
+        for i, (assignment, needed) in enumerate(store_targets):
+            if needed == 0 or not remaining_members:
+                continue
 
-        sorted_members = sorted(
-            remaining_members,
-            key=lambda m: calculate_distance(
-                store["latitude"], store["longitude"],
-                next(p["latitude"] for p in people if p["name"] == m["name"]),
-                next(p["longitude"] for p in people if p["name"] == m["name"])
+            store = assignment["store"]
+
+            closest_member = min(
+                remaining_members,
+                key=lambda m: haversine(
+                    store["latitude"], store["longitude"],
+                    next(p["latitude"] for p in people if p["name"] == m["name"]),
+                    next(p["longitude"] for p in people if p["name"] == m["name"])
+                )
             )
-        )
 
-        assigned_now = sorted_members[:still_needed]
-        for m in assigned_now:
-            assignment["assigned_members"].append(m["name"])
-            remaining_members.remove(m)
+            assignment["assigned_members"].append(closest_member["name"])
+            remaining_members.remove(closest_member)
+            store_targets[i] = (assignment, needed - 1)
 
-    # Step 4: Build final outputs
+    # ✅ Finalize plan and distances
     for assignment in store_assignments:
         store = assignment["store"]
         leader = assignment["leader"]
         members = assignment["assigned_members"]
 
-        # Leader distance
         leader_lat = next(p["latitude"] for p in people if p["name"] == leader["name"])
         leader_lng = next(p["longitude"] for p in people if p["name"] == leader["name"])
-        leader_dist = calculate_distance(store["latitude"], store["longitude"], leader_lat, leader_lng)
+        leader_dist = haversine(store["latitude"], store["longitude"], leader_lat, leader_lng)
 
-        # Members distances
         member_dists = []
         for m_name in members:
             m_lat = next(p["latitude"] for p in people if p["name"] == m_name)
             m_lng = next(p["longitude"] for p in people if p["name"] == m_name)
-            m_dist = calculate_distance(store["latitude"], store["longitude"], m_lat, m_lng)
+            m_dist = haversine(store["latitude"], store["longitude"], m_lat, m_lng)
             member_dists.append(m_dist)
 
         plan.append({

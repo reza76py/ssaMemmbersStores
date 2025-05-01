@@ -1,99 +1,7 @@
-# import streamlit as st
-# from data.db import get_connection
-
-# def render_visit_log():
-#     st.subheader("📜 Past Visit Logs")
-
-#     if "visit_plan" in st.session_state and st.session_state.visit_plan:
-#         plan_copy = st.session_state.visit_plan.copy()  # 🔥 Protect data copy
-
-#         if st.button("✅ Finalize & Save Current Plan to History"):
-#             # 🔥 Always create and close connection inside the button block
-#             conn = get_connection()
-#             cursor = conn.cursor()
-
-#             try:
-#                 for plan in plan_copy:
-#                     date_str = plan["date"]
-#                     store_name = plan["store"]
-#                     leader_name = plan["leader"]
-#                     members = ",".join(plan["members"])
-
-#                     # Get store ID
-#                     cursor.execute("SELECT id FROM stores WHERE name = ?", (store_name,))
-#                     store_row = cursor.fetchone()
-#                     if store_row:
-#                         store_id = store_row[0]
-#                     else:
-#                         continue
-
-#                     # Get leader ID
-#                     cursor.execute("SELECT id FROM people WHERE name = ?", (leader_name,))
-#                     leader_row = cursor.fetchone()
-#                     if leader_row:
-#                         leader_id = leader_row[0]
-#                     else:
-#                         continue
-
-#                     # Insert visit log
-#                     cursor.execute("""
-#                         INSERT INTO visit_logs (date, store_id, leader_id, members)
-#                         VALUES (?, ?, ?, ?)
-#                     """, (date_str, store_id, leader_id, members))
-
-#                 conn.commit()
-#                 st.success("Visit plan saved to history ✅")
-#                 st.session_state.visit_plan = []
-
-#             except Exception as e:
-#                 st.error(f"Error saving visit log: {e}")
-
-#             finally:
-#                 conn.close()  # 💥 Always close connection immediately after save
-
-#     # 📋 Always open a new connection to read logs
-#     conn = get_connection()
-#     cursor = conn.cursor()
-
-#     try:
-#         cursor.execute("""
-#             SELECT v.date, s.name AS store, p.name AS leader, v.members
-#             FROM visit_logs v
-#             JOIN stores s ON v.store_id = s.id
-#             JOIN people p ON v.leader_id = p.id
-#             ORDER BY v.date DESC
-#         """)
-#         logs = cursor.fetchall()
-
-#         if logs:
-#             st.table([
-#                 {"Date": log[0], "Store": log[1], "Leader": log[2], "Members": log[3]}
-#                 for log in logs
-#             ])
-#         else:
-#             st.info("No visit history yet.")
-
-#     except Exception as e:
-#         st.error(f"Error loading visit logs: {e}")
-
-#     finally:
-#         conn.close()  # 💥 Always close connection after reading logs
-
-
-
-
-
-
-
-
-
-
-
-
-
 import streamlit as st
 from data.db import get_connection
 import sqlite3
+import pandas as pd
 
 def render_visit_log():
     st.subheader("📜 Past Visit Logs")
@@ -180,12 +88,24 @@ def render_visit_log():
         visit_logs = cursor.fetchall()
 
         if visit_logs:
-            st.table([{
+            df = pd.DataFrame([{
                 "Date": v[0],
                 "Store": v[1],
                 "Leader": v[2],
                 "Members": v[3]
             } for v in visit_logs])
+
+            # ✅ Round all numeric values to integer (if any)
+            df = df.applymap(lambda x: round(x) if isinstance(x, (int, float)) else x)
+
+            styled_df = df.style.set_properties(**{
+                'white-space': 'normal',
+                'text-align': 'left',
+                'font-size': '14px'
+            })
+
+            st.dataframe(styled_df, use_container_width=True)
+
         else:
             st.info("No visits logged yet.")
 

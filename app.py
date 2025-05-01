@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import date
+import pandas as pd
 
 # Import your view functions
 from views.home_view import render_home_view
@@ -16,11 +17,58 @@ from data.loaders import save_to_json, load_from_json
 from data.db import initialize_database, get_connection
 
 # -------------------------------
-# 🛠 Initialize
+# 🟡 Database Fetch Helpers (Moved to Top!)
+# -------------------------------
+
+def fetch_people():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, role, latitude, longitude FROM people")
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"id": r[0], "name": r[1], "role": r[2], "latitude": r[3], "longitude": r[4]} for r in rows]
+
+def fetch_stores():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, latitude, longitude FROM stores")
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"id": r[0], "name": r[1], "latitude": r[2], "longitude": r[3]} for r in rows]
+
+def fetch_deliveries_today():
+    today = today_str()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT d.store_id, s.name, d.goods_value, d.date
+        FROM deliveries d
+        JOIN stores s ON d.store_id = s.id
+        WHERE d.date = ?
+    """, (today,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"store_id": r[0], "store": r[1], "goods_value": r[2], "date": r[3]} for r in rows]
+
+def fetch_availability_today():
+    today = today_str()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.person_id, p.name, p.role, a.available
+        FROM availability a
+        JOIN people p ON a.person_id = p.id
+        WHERE a.date = ?
+    """, (today,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"name": r[1], "role": r[2], "available": bool(r[3])} for r in rows]
+
+# -------------------------------
+# 🛠 Initialize App + DB
 # -------------------------------
 initialize_database()
 
-# Load custom CSS
 with open("styles/styles.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -46,7 +94,6 @@ menu = st.sidebar.selectbox(
 # -------------------------------
 # 🖥️ Main Page Content
 # -------------------------------
-
 if menu == "Home":
     render_home_view()
 
@@ -68,9 +115,7 @@ elif menu == "Set Availability":
 
 elif menu == "Generate Plan":
     st.title("📅 Generate Assignment Plan")
-
     if st.button("Generate Assignment Plan"):
-        # Fetch today's data
         people = fetch_people()
         stores = fetch_stores()
         deliveries = fetch_deliveries_today()
@@ -87,10 +132,24 @@ elif menu == "Generate Plan":
 
 elif menu == "Distance Details":
     st.title("📏 Detailed Distance Information")
+
     if "visit_plan_details" in st.session_state:
-        st.table(st.session_state.visit_plan_details)
+        df = pd.DataFrame(st.session_state.visit_plan_details)
+
+        # ✅ Round all numeric values to integer
+        df = df.applymap(lambda x: round(x) if isinstance(x, (int, float)) else x)
+
+        # Apply friendly styling
+        styled_df = df.style.set_properties(**{
+            'white-space': 'normal',
+            'text-align': 'left',
+            'font-size': '14px'
+        })
+
+        st.dataframe(styled_df, use_container_width=True)
     else:
         st.info("ℹ️ No distance information available yet.")
+
 
 elif menu == "Visit History":
     st.title("📜 Visit History")
@@ -139,7 +198,6 @@ elif menu == "Reset Database":
 # -------------------------------
 # 🟠 JSON Backup (optional)
 # -------------------------------
-
 today = today_str()
 
 if "people" not in st.session_state:
@@ -148,51 +206,3 @@ if "people" not in st.session_state:
 if st.button("Save People Data (JSON)"):
     save_to_json("people.json", st.session_state.people)
     st.success("✅ People data saved to JSON!")
-
-# -------------------------------
-# 🟡 Database Fetch Helpers
-# -------------------------------
-
-def fetch_people():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, role, latitude, longitude FROM people")
-    rows = cursor.fetchall()
-    conn.close()
-    return [{"id": r[0], "name": r[1], "role": r[2], "latitude": r[3], "longitude": r[4]} for r in rows]
-
-def fetch_stores():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, name, latitude, longitude FROM stores")
-    rows = cursor.fetchall()
-    conn.close()
-    return [{"id": r[0], "name": r[1], "latitude": r[2], "longitude": r[3]} for r in rows]
-
-def fetch_deliveries_today():
-    today = today_str()
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT d.store_id, s.name, d.goods_value, d.date
-        FROM deliveries d
-        JOIN stores s ON d.store_id = s.id
-        WHERE d.date = ?
-    """, (today,))
-    rows = cursor.fetchall()
-    conn.close()
-    return [{"store_id": r[0], "store": r[1], "goods_value": r[2], "date": r[3]} for r in rows]
-
-def fetch_availability_today():
-    today = today_str()
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT a.person_id, p.name, p.role, a.available
-        FROM availability a
-        JOIN people p ON a.person_id = p.id
-        WHERE a.date = ?
-    """, (today,))
-    rows = cursor.fetchall()
-    conn.close()
-    return [{"name": r[1], "role": r[2], "available": bool(r[3])} for r in rows]
