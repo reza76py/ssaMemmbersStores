@@ -6,13 +6,12 @@ from streamlit_folium import st_folium
 import folium
 
 def render_people_form():
-    st.header("🧑‍💼 Register People (Leader / Member)")
 
     with st.form("add_person_form"):
-        name = st.text_input("Full Name")
+        name = st.text_input("Enter Member's Name")
         role = st.selectbox("Role", ["leader", "member"])
 
-        st.markdown("### 🔎 Search Address (optional)")
+        st.markdown("### 🔎 Search Address (or choose from the Map bellow)")
 
         address = st.text_input("Enter an address to search:")
 
@@ -93,26 +92,36 @@ def render_people_form():
     conn.close()
 
     if people:
-        st.markdown("### 👤 People List with Delete Button")
+        st.markdown("### 👤 People List")
 
-        # Prepare table data
+        # Prepare table data (Latitude/Longitude removed from UI table, but kept separately)
         people_table = []
+        people_with_coords = []  # This stores full data for internal use
+
         for person in people:
             people_table.append({
                 "Name": person[0],
                 "Role": person[1],
-                "Latitude": round(person[2], 6),
-                "Longitude": round(person[3], 6),
-                "Delete": False,  # 🔥 New column for delete checkbox
+                "Delete": False,
             })
+            people_with_coords.append({
+                "Name": person[0],
+                "Role": person[1],
+                "Latitude": person[2],
+                "Longitude": person[3],
+            })
+
 
         # Show data editor
         edited_people = st.data_editor(
             people_table,
             hide_index=True,
             column_config={
-                "Delete": st.column_config.CheckboxColumn("Delete", default=False)
-            }
+                "Delete": st.column_config.CheckboxColumn(
+                    label="Delete Button",  # This removes the header text
+                    default=False
+                )
+            },
         )
 
         # 🔥 If any Delete checkbox is checked, delete that person

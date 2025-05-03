@@ -102,7 +102,7 @@ elif menu == "Register People":
     render_people_form()
 
 elif menu == "Register Stores":
-    st.title("🏬 Register Store Locations")
+    st.title("🏬 Register Stores Locations")
     render_store_form()
 
 elif menu == "Add Deliveries":
@@ -131,7 +131,7 @@ elif menu == "Generate Plan":
             st.success("✅ Plan created!")
 
 elif menu == "Distance Details":
-    st.title("📏 Detailed Distance Information")
+    st.title("📏 Distance from Home to the chosen Store (km)")
 
     if "visit_plan_details" in st.session_state:
         df = pd.DataFrame(st.session_state.visit_plan_details)
@@ -146,7 +146,7 @@ elif menu == "Distance Details":
             'font-size': '14px'
         })
 
-        st.dataframe(styled_df, use_container_width=True)
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
     else:
         st.info("ℹ️ No distance information available yet.")
 
@@ -203,6 +203,3 @@ today = today_str()
 if "people" not in st.session_state:
     st.session_state.people = load_from_json("people.json")
 
-if st.button("Save People Data (JSON)"):
-    save_to_json("people.json", st.session_state.people)
-    st.success("✅ People data saved to JSON!")

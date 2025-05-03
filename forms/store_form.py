@@ -6,12 +6,11 @@ import folium
 from data.db import get_connection
 
 def render_store_form():
-    st.header("🏬 Register Store Location")
 
     with st.form("add_store_form"):
         store_name = st.text_input("Store Name")
 
-        st.markdown("### 🔎 Search Address (optional)")
+        st.markdown("### 🔎 Search Address (or choose from the Map bellow)")
 
         address = st.text_input("Enter an address to search:")
 
@@ -85,7 +84,7 @@ def render_store_form():
                 st.success(f"✅ {store_name} added successfully!")
 
     # 🟡 After form: Show current list of stores
-    st.markdown("### 📋 Current Saved Stores:")
+
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -94,17 +93,23 @@ def render_store_form():
     conn.close()
 
     if stores:
-        st.markdown("### 🏬 Stores List with Delete Button")
+        st.markdown("### 🏬 List of Saved Stores ")
 
-        # Prepare table data
+        # Prepare display table (hide lat/lon) and keep full data separately
         stores_table = []
+        stores_with_coords = []
+
         for store in stores:
             stores_table.append({
                 "Store Name": store[0],
-                "Latitude": round(store[1], 6),
-                "Longitude": round(store[2], 6),
-                "Delete": False,  # 🔥 New column for delete checkbox
+                "Delete": False,
             })
+            stores_with_coords.append({
+                "Store Name": store[0],
+                "Latitude": store[1],
+                "Longitude": store[2],
+            })
+
 
         # Show data editor
         edited_stores = st.data_editor(

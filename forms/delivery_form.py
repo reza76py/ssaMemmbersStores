@@ -1,9 +1,9 @@
 import streamlit as st
 from datetime import date
 from data.db import get_connection
+import pandas as pd
 
 def render_delivery_form():
-    st.subheader("Enter Delivered Goods Value")
 
     # Load stores from database
     conn = get_connection()
@@ -22,7 +22,7 @@ def render_delivery_form():
     # Form to enter goods
     with st.form("delivery_form"):
         selected_store_name = st.selectbox("Select Store", store_names)
-        goods_value = st.number_input("Goods Value ($)", min_value=0.0, step=100.0)
+        goods_value = int(st.number_input("Goods Value ($)", min_value=0.0, step=100.0))
         submitted = st.form_submit_button("Save Delivery Info")
 
         if submitted:
@@ -37,10 +37,9 @@ def render_delivery_form():
             )
             conn.commit()
             conn.close()
-            st.success(f"Delivery recorded for {selected_store_name} (${goods_value:.2f})")
-
+            st.success(f"Delivery recorded for {selected_store_name} (${int(goods_value)})")
     # Show today's deliveries
-    st.subheader("Today's Deliveries")
+    st.subheader("Deliveries Value")
     today = str(date.today())
     conn = get_connection()
     cursor = conn.cursor()
@@ -54,8 +53,20 @@ def render_delivery_form():
     conn.close()
 
     if deliveries_today:
-        st.table([
-            {"Store": d[0], "Goods Value": d[1], "Date": d[2]} for d in deliveries_today
-        ])
+        # st.table([
+        #     {"Store": d[0], "Goods Value": f"$ {int(d[1]):,}", "Date": d[2]} for d in deliveries_today
+        # Build the table
+        table_data = [
+            {"Store": d[0], "Goods Value": f"$ {int(d[1]):,}", "Date": d[2]}
+            for d in deliveries_today
+        ]
+        df = pd.DataFrame(table_data)
+
+        # Show the table without index
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+
+
+        
     else:
         st.info("No deliveries recorded yet today.")

@@ -4,7 +4,6 @@ import sqlite3
 import pandas as pd
 
 def render_visit_log():
-    st.subheader("📜 Past Visit Logs")
 
     if "visit_plan" in st.session_state and st.session_state.visit_plan:
         if st.button("✅ Finalize & Save Current Plan to History"):

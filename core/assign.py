@@ -155,10 +155,10 @@ def generate_assignments(stores, deliveries, availability, people, visit_log):
         distance_details.append({
             "store": store["name"],
             "leader": leader["name"],
-            "leader_distance": leader_dist,
+            "leader_travel (km)": leader_dist,
             "members": members,
-            "member_distances": member_dists,
-            "total_distance": leader_dist + sum(member_dists)
+            "member_travel (km)": member_dists,
+            "total_travel (km)": leader_dist + sum(member_dists)
         })
 
     return plan, distance_details
