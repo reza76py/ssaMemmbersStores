@@ -1,11 +1,11 @@
 
 [data-testid="stAppViewContainer"] {
-    background-color: rgb(53, 49, 49) !important;
+    background-color: rgb(31, 29, 29) !important;
 }
 
 
 [data-testid="stAppViewContainer"] * {
-    color: white !important;
+    color: rgb(129, 106, 106) !important;
 }
 
 
@@ -18,7 +18,7 @@
 
 input, select, textarea {
     background-color: #222 !important;
-    color: white !important;
+    color: rgb(121, 110, 110) !important;
     border: 1px solid #666 !important;
 }
 
@@ -28,7 +28,7 @@ input, select, textarea {
 
 div[data-baseweb="select"] > div {
     background-color: #1f1c1c !important;
-    color: white !important;
+    color: rgb(138, 121, 121) !important;
 }
 
 
@@ -39,9 +39,28 @@ div[data-baseweb="select"] > div {
 
 
 /* 🔲 Style for the "Add Person" submit button */
-div.st-emotion-cache-kj6hex button {
+/* div.st-emotion-cache-kj6hex button {
     background-color: #7f9bd8 !important;
     color: white !important;
     border: 1px solid #999 !important;
     border-radius: 5px !important;
+} */
+
+
+
+
+
+
+/* Search Address button */
+form[data-testid="stForm"][id="add_person_form"] button[type="secondary"] {
+    background-color: #2196F3 !important;
+    border-color: #1976D2 !important;
+    color: rgb(90, 77, 77) !important;
+}
+
+/* Add Person button */
+form[data-testid="stForm"][id="add_person_form"] button[type="primary"] {
+    background-color: #4CAF50 !important;
+    border-color: #45a049 !important;
+    color: white !important;
 }
