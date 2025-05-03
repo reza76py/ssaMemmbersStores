@@ -1,27 +1,47 @@
-.people-form-section {
-    background-color: #f0f8ff; /* Light blue background */
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+
+[data-testid="stAppViewContainer"] {
+    background-color: rgb(53, 49, 49) !important;
 }
 
-/* 🌟 GLOBAL TABLE IMPROVEMENTS */
-table {
-    table-layout: auto !important;
-    word-wrap: break-word;
-    white-space: normal !important;
-    font-size: 14px;
-    line-height: 1.5;
-    text-align: left;
-    border-collapse: collapse;
+
+[data-testid="stAppViewContainer"] * {
+    color: white !important;
 }
 
-th, td {
-    padding: 8px 12px;
-    text-align: left;
-    vertical-align: top;
+
+.stButton > button {
+    background-color: #444 !important;
+    color: rgb(70, 53, 53) !important;
+    border: 1px solid #666 !important;
 }
 
-.css-1d391kg, .css-1l269bu, .stDataFrame {
-    overflow-x: auto;
+
+input, select, textarea {
+    background-color: #222 !important;
+    color: white !important;
+    border: 1px solid #666 !important;
+}
+
+[data-testid="stSidebar"] {
+    background-color: #111 !important;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #1f1c1c !important;
+    color: white !important;
+}
+
+
+
+
+
+
+
+
+/* 🔲 Style for the "Add Person" submit button */
+div.st-emotion-cache-kj6hex button {
+    background-color: #7f9bd8 !important;
+    color: white !important;
+    border: 1px solid #999 !important;
+    border-radius: 5px !important;
 }
