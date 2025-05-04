@@ -78,9 +78,17 @@ def initialize_database():
         person_id INTEGER,
         store_name TEXT,
         visit_date TEXT,
+        UNIQUE(person_id, store_name, visit_date),
         FOREIGN KEY(person_id) REFERENCES people(id)
     )
     """)
+
+    # Enforce uniqueness for confirmation records
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS unique_read_confirmation
+        ON read_confirmations(person_id, store_name, visit_date)
+    """)
+
 
 
     conn.commit()

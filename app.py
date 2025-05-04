@@ -4,6 +4,7 @@ import pandas as pd
 import time  # Added for cache busting
 import hashlib  # Added for cache busting
 from urllib.parse import unquote
+import sqlite3
 
 # Import your view functions
 from views.home_view import render_home_view
@@ -109,15 +110,20 @@ if confirm_token:
 
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO read_confirmations (person_id, store_name, visit_date)
-            VALUES (?, ?, ?)
-        """, (person_id, store, visit_date))
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute("""
+                INSERT INTO read_confirmations (person_id, store_name, visit_date)
+                VALUES (?, ?, ?)
+            """, (person_id, store, visit_date))
+            conn.commit()
+            st.success(f"✅ Confirmed! You have read your assignment to {store} on {visit_date}.")
+        except sqlite3.IntegrityError:
+            st.warning("⚠️ You have already confirmed this assignment.")
+        finally:
+            conn.close()
+            st.stop()
 
-        st.success(f"✅ Confirmed! You have read your assignment to {store} on {visit_date}.")
-        st.stop()
+
     else:
         st.error("⚠️ Invalid confirmation token format.")
         st.stop()
@@ -198,6 +204,8 @@ elif menu == "Generate Plan":
             conn = get_connection()
             cursor = conn.cursor()
 
+            cursor.execute("DELETE FROM visit_plan")
+            conn.commit()
             for row in st.session_state.visit_plan:
                 store = row["store"]
                 visit_date = row["date"]
