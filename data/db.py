@@ -12,6 +12,8 @@ def initialize_database():
     conn = get_connection()
     cursor = conn.cursor()
 
+    cursor.execute("DROP TABLE IF EXISTS read_confirmations")
+
     # Create People table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS people (
@@ -68,6 +70,18 @@ def initialize_database():
         FOREIGN KEY(leader_id) REFERENCES people(id)
     )
     """)
+
+    # Create Read Confirmations table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS read_confirmations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        person_id INTEGER,
+        store_name TEXT,
+        visit_date TEXT,
+        FOREIGN KEY(person_id) REFERENCES people(id)
+    )
+    """)
+
 
     conn.commit()
     conn.close()

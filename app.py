@@ -3,6 +3,7 @@ from datetime import date
 import pandas as pd
 import time  # Added for cache busting
 import hashlib  # Added for cache busting
+from urllib.parse import unquote
 
 # Import your view functions
 from views.home_view import render_home_view
@@ -66,10 +67,8 @@ def fetch_availability_today():
     conn.close()
     return [{"name": r[1], "role": r[2], "available": bool(r[3])} for r in rows]
 
-# -------------------------------
-# 🛠 Initialize App + DB
-# -------------------------------
-initialize_database()
+
+
 
 # -------------------------------
 # 🎨 CSS Injection with Cache Busting
@@ -85,6 +84,43 @@ def inject_css():
     )
 
 inject_css()
+
+
+# -------------------------------
+# ✅ Handle Read Confirmation Token
+# -------------------------------
+from urllib.parse import unquote
+
+confirm_token = st.query_params.get("confirm_read")
+
+if confirm_token:
+    st.title("📬 Assignment Read Confirmation")
+    parts = unquote(confirm_token).split("-", 2)
+    if len(parts) == 3:
+        person_id, store, visit_date = parts
+        try:
+            person_id = int(person_id)
+        except ValueError:
+            st.error("Invalid person_id in confirmation link.")
+            st.stop()
+
+        st.write(f"ℹ️ Saving confirmation: person_id={person_id}, store={store}, date={visit_date}")
+
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO read_confirmations (person_id, store_name, visit_date)
+            VALUES (?, ?, ?)
+        """, (person_id, store, visit_date))
+        conn.commit()
+        conn.close()
+
+        st.success(f"✅ Confirmed! You have read your assignment to {store} on {visit_date}.")
+        st.stop()
+    else:
+        st.error("⚠️ Invalid confirmation token format.")
+        st.stop()
+
 
 # -------------------------------
 # 🏠 Sidebar Navigation
@@ -130,13 +166,14 @@ elif menu == "Set Availability":
 elif menu == "Generate Plan":
     st.title("🗕️ Generate Assignment Plan")
 
-    # 🔀 Build name-to-id mapping
+    # Build name-to-id mapping
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name FROM people")
     name_to_id = {name: person_id for person_id, name in cursor.fetchall()}
     conn.close()
 
+    # Step 1: Button to trigger assignment generation
     if st.button("Generate Assignment Plan"):
         people = fetch_people()
         stores = fetch_stores()
@@ -151,9 +188,9 @@ elif menu == "Generate Plan":
                 stores, deliveries, availability_today, people, visit_log
             )
 
+            # Save assignments to DB
             conn = get_connection()
             cursor = conn.cursor()
-            print("🔎 Sample row in visit_plan:", st.session_state.visit_plan[0])
 
             for row in st.session_state.visit_plan:
                 store = row["store"]
@@ -177,9 +214,28 @@ elif menu == "Generate Plan":
             conn.commit()
             conn.close()
 
-            send_assignment_emails()
+            # ✅ Assignment plan generated
+            st.session_state.assignment_generated = True
 
-            st.success("✅ Plan created and emails sent!")
+    # Step 2: Show email option *after* generating the plan
+    if st.session_state.get("assignment_generated", False):
+        send_email_now = st.radio(
+            "📧 Do you want to send assignment emails now?",
+            ["Yes", "No"], index=1, horizontal=True,
+            key="email_decision"
+        )
+
+        if st.button("Confirm Email Decision"):
+            if send_email_now == "Yes":
+                send_assignment_emails()
+                st.success("✅ Plan created and emails sent!")
+            else:
+                st.success("✅ Plan created. Emails were not sent.")
+            # Reset trigger
+            del st.session_state["assignment_generated"]
+            del st.session_state["email_decision"]
+
+
 
 elif menu == "Distance Details":
     st.title("📏 Distance from Home to the chosen Store (km)")
@@ -199,6 +255,31 @@ elif menu == "Distance Details":
 elif menu == "Visit History":
     st.title("📜 Visit History")
     render_visit_log()
+
+    st.markdown("---")
+    st.subheader("✅ Assignment Read Confirmations")
+
+    show_confirmations = st.checkbox("Show who confirmed their assignments")
+
+    if show_confirmations:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT rc.visit_date, p.name, p.role, rc.store_name
+            FROM read_confirmations rc
+            JOIN people p ON rc.person_id = p.id
+            ORDER BY rc.visit_date DESC
+        """)
+        confirmations = cursor.fetchall()
+        conn.close()
+
+        if confirmations:
+            df = pd.DataFrame(confirmations, columns=["Date", "Name", "Role", "Store"])
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("ℹ️ No one has confirmed their assignment yet.")
+
 
 elif menu == "Reset Database":
     st.title("🛑 Reset Database")
