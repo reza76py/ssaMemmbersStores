@@ -95,7 +95,7 @@ def render_visit_log():
             } for v in visit_logs])
 
             # ✅ Round all numeric values to integer (if any)
-            df = df.applymap(lambda x: round(x) if isinstance(x, (int, float)) else x)
+            df = df.apply(lambda col: col.map(lambda x: round(x) if isinstance(x, (int, float)) else x))
 
             styled_df = df.style.set_properties(**{
                 'white-space': 'normal',

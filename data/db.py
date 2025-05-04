@@ -18,6 +18,7 @@ def initialize_database():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         role TEXT CHECK(role IN ('leader', 'member')) NOT NULL,
+        email TEXT NOT NULL,
         latitude REAL,
         longitude REAL
     )

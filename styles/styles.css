@@ -34,23 +34,6 @@ div[data-baseweb="select"] > div {
 
 
 
-
-
-
-
-/* 🔲 Style for the "Add Person" submit button */
-/* div.st-emotion-cache-kj6hex button {
-    background-color: #7f9bd8 !important;
-    color: white !important;
-    border: 1px solid #999 !important;
-    border-radius: 5px !important;
-} */
-
-
-
-
-
-
 /* Search Address button */
 form[data-testid="stForm"][id="add_person_form"] button[type="secondary"] {
     background-color: #2196F3 !important;
