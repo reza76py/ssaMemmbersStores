@@ -11,6 +11,7 @@ from forms.people_form import render_people_form
 from forms.store_form import render_store_form
 from forms.delivery_form import render_delivery_form
 from forms.availability_form import render_availability_form
+from views.dashboard_view import render_dashboard
 from core.assign import generate_assignments
 from views.visit_plan_view import render_visit_plan
 from views.visit_log_view import render_visit_log
@@ -130,6 +131,7 @@ menu = st.sidebar.selectbox(
     "Navigation",
     [
         "Home",
+        "Dashboard",
         "Register People",
         "Register Stores",
         "Add Deliveries",
@@ -146,6 +148,10 @@ menu = st.sidebar.selectbox(
 # -------------------------------
 if menu == "Home":
     render_home_view()
+
+elif menu == "Dashboard":
+    render_dashboard()
+
 
 elif menu == "Register People":
     st.title("👥 Register People (Leader/Member)")
