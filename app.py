@@ -178,6 +178,13 @@ elif menu == "Set Availability":
 elif menu == "Generate Plan":
     st.title("🗕️ Generate Assignment Plan")
 
+        # 📨 Sender Input
+    with st.expander("✉️ Email Sender Configuration"):
+        sender_email = st.text_input("Sender Gmail Address", value=st.session_state.get("sender_email", "reza761co@gmail.com"))
+        sender_password = st.text_input("App Password", type="password", value=st.session_state.get("sender_password", ""), help="Use your Gmail App Password")
+        st.session_state.sender_email = sender_email
+        st.session_state.sender_password = sender_password
+
     # Build name-to-id mapping
     conn = get_connection()
     cursor = conn.cursor()
@@ -241,7 +248,7 @@ elif menu == "Generate Plan":
 
         if st.button("Confirm Email Decision"):
             if send_email_now == "Yes":
-                send_assignment_emails()
+                send_assignment_emails(st.session_state.sender_email, st.session_state.sender_password)
                 st.success("✅ Plan created and emails sent!")
             else:
                 st.success("✅ Plan created. Emails were not sent.")
@@ -315,6 +322,7 @@ elif menu == "Reset Database":
                     cursor.execute("DROP TABLE IF EXISTS deliveries")
                     cursor.execute("DROP TABLE IF EXISTS availability")
                     cursor.execute("DROP TABLE IF EXISTS visit_logs")
+                    cursor.execute("DROP TABLE IF EXISTS visit_plan")
                     cursor.execute("VACUUM")
                     conn.commit()
 
@@ -330,7 +338,7 @@ elif menu == "Reset Database":
                         del st.session_state[key]
 
                 st.success("✅ Database fully reset to initial state!")
-                st.experimental_rerun()
+                st.rerun()
 
             except Exception as e:
                 st.error(f"Error resetting database: {e}")
