@@ -20,6 +20,7 @@ from core.priority import calculate_store_priorities
 from core.utils import today_str
 from data.loaders import save_to_json, load_from_json
 from data.db import initialize_database, get_connection
+initialize_database()
 from notifications.email_assignment import send_assignment_emails
 
 # -------------------------------
