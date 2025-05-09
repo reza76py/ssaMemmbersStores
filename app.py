@@ -179,13 +179,6 @@ elif menu == "Set Availability":
 elif menu == "Generate Plan":
     st.title("🗕️ Generate Assignment Plan")
 
-    #     # 📨 Sender Input
-    # with st.expander("✉️ Email Sender Configuration"):
-    #     sender_email = st.text_input("Sender Gmail Address", value=st.session_state.get("sender_email", "reza761co@gmail.com"))
-    #     sender_password = st.text_input("App Password", type="password", value=st.session_state.get("sender_password", ""), help="Use your Gmail App Password")
-    #     st.session_state.sender_email = sender_email
-    #     st.session_state.sender_password = sender_password
-
     # Build name-to-id mapping
     conn = get_connection()
     cursor = conn.cursor()
@@ -247,16 +240,22 @@ elif menu == "Generate Plan":
             key="email_decision"
         )
 
+        # 📨 Planner Email Input Section
+        with st.expander("✉️ Email Sender (Planner Only)"):
+            sender_email = st.text_input("Sender Gmail Address", type="default")
+            sender_password = st.text_input("App Password", type="password", help="Use a Gmail App Password")
+
         if st.button("Confirm Email Decision"):
             if send_email_now == "Yes":
-                send_assignment_emails(
-                    st.secrets["sender_email"],
-                    st.secrets["app_password"]
-                )
-                st.success("✅ Plan created and emails sent!")
+                if not sender_email or not sender_password:
+                    st.error("❌ Please enter both your Gmail and App Password.")
+                else:
+                    send_assignment_emails(sender_email, sender_password)
+                    st.success("✅ Plan created and emails sent!")
             else:
                 st.success("✅ Plan created. Emails were not sent.")
-            # Reset trigger
+
+            # Reset flags
             del st.session_state["assignment_generated"]
             del st.session_state["email_decision"]
 
