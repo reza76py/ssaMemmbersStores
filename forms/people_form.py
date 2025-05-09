@@ -10,8 +10,11 @@ def render_people_form():
         # Personal Information
         name = st.text_input("Enter Member's Name", value=st.session_state.get("input_name", ""))
         email = st.text_input("Email Address", value=st.session_state.get("input_email", ""))
-        role = st.selectbox("Role", ["leader", "member"], index=["leader", "member"].index(st.session_state.get("input_role", "leader")))
-
+                # Safely get role from session or fallback to "leader"
+        default_role = st.session_state.get("input_role")
+        if default_role not in ["leader", "member"]:
+            default_role = "leader"
+        role = st.selectbox("Role", ["leader", "member"], index=["leader", "member"].index(default_role))
 
         # Address Search Section
         st.markdown("### 🔎 Search Address")
