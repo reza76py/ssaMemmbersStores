@@ -98,9 +98,9 @@ def render_people_form():
                     """, (name, role, email, final_lat, final_lon))
                     conn.commit()
                     st.success(f"✅ {name} ({role}) added successfully!")
-                    st.session_state.input_name = name
-                    st.session_state.input_email = email
-                    st.session_state.input_role = role
+                    st.session_state.input_name = "name"
+                    st.session_state.input_email = "email"
+                    st.session_state.input_role = "role"
                     # Clear search session state after successful addition
                     if "search_lat" in st.session_state:
                         del st.session_state.search_lat
