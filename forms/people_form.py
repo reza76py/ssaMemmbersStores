@@ -98,9 +98,9 @@ def render_people_form():
                     """, (name, role, email, final_lat, final_lon))
                     conn.commit()
                     st.success(f"✅ {name} ({role}) added successfully!")
-                    st.session_state.input_name = ""
-                    st.session_state.input_email = ""
-                    st.session_state.input_role = "leader"
+                    st.session_state.input_name = name
+                    st.session_state.input_email = email
+                    st.session_state.input_role = role
                     # Clear search session state after successful addition
                     if "search_lat" in st.session_state:
                         del st.session_state.search_lat
@@ -119,7 +119,7 @@ def render_people_form():
     conn = get_connection()
     try:
         people = conn.execute("""
-            SELECT name, role, latitude, longitude 
+            SELECT name, role, email, latitude, longitude 
             FROM people
             ORDER BY role DESC, name ASC
         """).fetchall()
@@ -135,7 +135,7 @@ def render_people_form():
             {
                 "Name": p[0],
                 "Role": p[1],
-                "Coordinates": f"{p[2]:.4f}, {p[3]:.4f}",
+                "Email": p[2],
                 "Delete": False
             } 
             for p in people
