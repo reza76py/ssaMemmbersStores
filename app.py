@@ -235,7 +235,7 @@ elif menu == "Generate Plan":
     # Step 2: Show email option *after* generating the plan
     if st.session_state.get("assignment_generated", False):
         send_email_now = st.radio(
-            "📧 Do you want to send assignment emails now?",
+            "📧 ❌ at the moment, sending emails is Blocked.",
             ["Yes", "No"], index=1, horizontal=True,
             key="email_decision"
         )

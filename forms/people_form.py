@@ -8,7 +8,7 @@ import folium
 def render_people_form():
     with st.form("add_person_form", clear_on_submit=True):
         # Personal Information
-        name = st.text_input("Enter Member's Name", value=st.session_state.get("input_name", ""))
+        name = st.text_input("Member's Name", value=st.session_state.get("input_name", ""))
         email = st.text_input("Email Address", value=st.session_state.get("input_email", ""))
                 # Safely get role from session or fallback to "leader"
         default_role = st.session_state.get("input_role")
