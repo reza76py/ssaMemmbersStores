@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  streamlit:
+    build: .
+    container_name: ssabun_app
+    restart: always
+    env_file: .env
+    ports:
+      - "8501:8501"
+    networks:
+      - ssabun_network
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+      - STREAMLIT_SERVER_PORT=${STREAMLIT_SERVER_PORT}
+      - STREAMLIT_SERVER_ADDRESS=${STREAMLIT_SERVER_ADDRESS}
+
+networks:
+  ssabun_network:
+    driver: bridge
