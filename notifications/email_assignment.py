@@ -6,7 +6,8 @@ from urllib.parse import quote
 from data.db import get_connection
 import streamlit as st
 
-CONFIRMATION_BASE_URL = st.secrets.get("base_url", "http://localhost:8501") + "/?confirm_read="  # Update on deploy
+# CONFIRMATION_BASE_URL = st.secrets.get("base_url", "http://localhost:8501") + "/?confirm_read="  # Update on deploy
+CONFIRMATION_BASE_URL = os.getenv("BASE_URL", "http://localhost:8501") + "/?confirm_read="
 
 def send_assignment_emails(sender_email, app_password):
     print("📧 Email sending process started...")
