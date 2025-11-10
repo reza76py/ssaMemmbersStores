@@ -3,7 +3,7 @@ version: "3.9"
 services:
   streamlit:
     build: .
-    container_name: ssabun_app
+    container_name: bunn-ssa-mmbr
     restart: always
     env_file: .env
     ports:
